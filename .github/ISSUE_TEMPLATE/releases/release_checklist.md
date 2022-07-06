@@ -21,9 +21,17 @@
        - [ ] Retrieve the source tarball artifact - `BlobArtifacts/dotnet-sdk-source-6.0.xxx.tar.gz`
      - [ ] [Tarball](https://dev.azure.com/dnceng/internal/_build?definitionId=1011) (internal link)
        - [ ] Ensure the PoisonTests and SdkContentTests are passing.  Warnings indicate a baseline diff and should be inspected carefully.
-1. - [ ] [Internal] Gather smoke-test prereqs and package in dotnet-smoke-test-prereqs-6.0.101.tar.gz.
-     - [ ] Retrieve the smoke-test prereqs artifact from [Tarball](https://dev.azure.com/dnceng/internal/_build?definitionId=1011) (internal link) - `Build Tarball CentOS7-Offline_Artifacts/dotnet-smoke-test-prereqs.6.0.xxx.tar.gz`
-     - [ ] Manually add `microsoft.net.runtime.monoaotcompiler.task::6.0.x` by running `dotnet workload install macos` or manually downloading package. [Automation tracking issue](https://github.com/dotnet/source-build/issues/2774) for this step.
+1. - [ ] [Internal] Gather smoke-test prereqs
+     - [ ] Retrieve smoke-test prereqs artifact for each architecture (e.g. x64 and arm64) from [tarball build](https://dev.azure.com/dnceng/internal/_build?definitionId=1011) (internal link)
+       - [ ] x64 - `Build Tarball CentOS7-Offline_Artifacts/dotnet-smoke-test-prereqs.6.0.xxx.tar.gz`
+       - [ ] arm64 - `Build Tarball Debian9-Offline_Artifacts/dotnet-smoke-test-prereqs.6.0.xxx.tar.gz`
+     - [ ] Retrieve `microsoft.net.runtime.monoaotcompiler.task` package from internal MSFT feed. [Automation tracking issue](https://github.com/dotnet/source-build/issues/2774) for this step.
+     - [ ] Create new tarball of unique packages
+       - [ ] Extract x64 tarball
+       - [ ] Add `microsoft.net.runtime.monoaotcompiler.task` package to x64 packages
+       - [ ] Extact arm64 tarball
+       - [ ] Copy four `*linux-arm64*` packages to x64 packages
+       - [ ] Create new `dotnet-smoke-test-prereqs.6.0.xxx.tar.gz` tarball
 1. - [ ] [Internal] Upload source and smoke-test-prereqs tarball to dotnetclimsrc storage account.
 1. - [ ] Notify partners of release.  Include info about how certain we are that this will be the final Microsoft build.
      - [Internal] Send the dotnetclimsrc tarball links to partners.
@@ -34,6 +42,12 @@
      - [ ] Retrieve the source-build artifacts from [Tarball](https://dev.azure.com/dnceng/internal/_build?definitionId=1011) (internal link) - `Build Tarball CentOS7-Offline_Artifacts/Private.SourceBuilt.Artifacts.6.0.xxx.tar.gz`
 1. - [ ] Run the [source-build-release pipeline](https://dev.azure.com/dnceng/internal/_build?definitionId=1124) (internal link).
      - Set the `SDK Version` parameter.
-     - If a special source-build tag was created for the release, check `Use custom tag?` and set the `Installer custom tag` parameter.
+         - If a special source-build tag was created for the release, check `Use custom tag?` and set the `Installer custom tag` parameter.
+         - Do not edit the `Branch/tag` parameter. The pipeline will check out `dotnet/installer` itself and verify that the specified release tag exists.
+     - Click `Run` and wait for the pipeline stages to complete.
+     - Verify that the announcement was posted to [dotnet/source-build discussions](https://github.com/dotnet/source-build/discussions) and that the content is correct and all links work.
+          - If special edits to the announcement are needed, or the content of the announcement discussion is incorrect, source-build repo maintainers can edit the discussion directly once it is posted.
+     - Verify that the release-day PR was submitted to [dotnet/installer](https://github.com/dotnet/installer/pulls) and the content is correct.
+          - If there is an error in the PR, commit directly to the PR branch directly to fix the problem by hand, then submit an issue to [dotnet/source-build](https://github.com/dotnet/source-build).
 1. - [ ] Once the internal changes have been merged to the public GitHub repos, update the PoisonTests and SdkContentTests with any diffs from the tarball build in step 3.
 1. - [ ] Clean up retrospective notes if necessary.
